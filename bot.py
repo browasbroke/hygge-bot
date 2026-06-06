@@ -6,7 +6,6 @@ Hygge Kafé — Telegram Bot
 import os
 import logging
 from dotenv import load_dotenv
-from openai import OpenAI
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
@@ -20,10 +19,6 @@ load_dotenv()
 
 BOT_TOKEN  = os.getenv("BOT_TOKEN")
 ADMIN_ID   = int(os.getenv("ADMIN_CHAT_ID"))
-OPENAI_KEY = os.getenv("OPENAI_API_KEY")
-
-ai = OpenAI(api_key=OPENAI_KEY)
-
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s",
     level=logging.INFO,
@@ -150,42 +145,6 @@ def kb_admin_booking(booking_id):
     ])
 
 
-# ============================================================
-#  ИИ (ChatGPT)
-# ============================================================
-
-AI_ENABLED = bool(OPENAI_KEY and OPENAI_KEY != "вставь_сюда_ключ")
-
-async def ask_ai(question: str) -> str:
-    if not AI_ENABLED:
-        return (
-            "Для ответов на вопросы пока используйте телефон:\n"
-            "📞 +7 (937) 849-23-18\n\n"
-            "Или выберите раздел меню через кнопку ниже 👇"
-        )
-    try:
-        resp = ai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            max_tokens=400,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Ты дружелюбный помощник кафе Hygge в Уфе. "
-                        "Отвечай на русском, кратко и тепло. "
-                        "Без markdown-символов (звёздочек, решёток).\n\n"
-                        + get_menu_text()
-                        + "\n\nОтвечай только по теме кафе. "
-                        "На посторонние вопросы вежливо откажи."
-                    ),
-                },
-                {"role": "user", "content": question},
-            ],
-        )
-        return resp.choices[0].message.content
-    except Exception as e:
-        log.error(f"AI error: {e}")
-        return "Не смог ответить — позвоните нам: +7 (937) 849-23-18"
 
 
 # ============================================================
@@ -513,15 +472,12 @@ async def cmd_bookings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         )
 
 
-# ============================================================
-#  Свободный вопрос → ИИ
-# ============================================================
-
 async def free_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    question = update.message.text
-    await update.effective_chat.send_action("typing")
-    answer = await ask_ai(question)
-    await update.message.reply_text(answer, reply_markup=kb_main())
+    await update.message.reply_text(
+        "Чем могу помочь? Выберите раздел 👇\n\n"
+        "По вопросам звоните: +7 (937) 849-23-18",
+        reply_markup=kb_main(),
+    )
 
 
 # ============================================================
