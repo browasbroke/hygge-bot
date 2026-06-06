@@ -1,0 +1,5 @@
+.env
+hygge.db
+bot.log
+__pycache__/
+*.pyc

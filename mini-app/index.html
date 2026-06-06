@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hygge Kafé</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:   #F7F3EC;
+      --beige:   #EDE5D6;
+      --sand:    #D4C4AD;
+      --brown:   #8C6D4F;
+      --brown-d: #6B4F35;
+      --dark:    #2D2017;
+      --muted:   #7A6755;
+      --sage:    #7A9E78;
+      --white:   #FDFBF8;
+      --r:       14px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--cream);
+      color: var(--dark);
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--white);
+      padding: 16px 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 0 var(--beige);
+    }
+
+    .header__logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 2px;
+    }
+    .header__logo em { color: var(--brown); font-style: italic; font-weight: 400; }
+
+    .header__sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* ---- Category tabs ---- */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 14px;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1.5px solid var(--beige);
+      background: transparent;
+      color: var(--muted);
+      transition: all .2s ease;
+      flex-shrink: 0;
+    }
+    .tab.active {
+      background: var(--brown);
+      border-color: var(--brown);
+      color: #fff;
+    }
+
+    /* ---- Content ---- */
+    .content {
+      padding: 16px 16px 100px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 12px;
+    }
+
+    /* ---- Menu cards ---- */
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--r);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 1px 8px rgba(45,32,23,.07);
+      transition: transform .15s ease;
+      cursor: pointer;
+    }
+    .card:active { transform: scale(.98); }
+
+    .card__img {
+      width: 88px;
+      min-height: 88px;
+      flex-shrink: 0;
+      background: var(--beige);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .card__body {
+      flex: 1;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+
+    .card__name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card__desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card__price {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--brown);
+    }
+
+    /* ---- Bottom book button ---- */
+    .book-btn {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 12px 16px max(env(safe-area-inset-bottom), 12px);
+      background: linear-gradient(to top, var(--cream) 80%, transparent);
+    }
+
+    .book-btn__inner {
+      background: var(--brown);
+      color: #fff;
+      border: none;
+      width: 100%;
+      padding: 15px;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background .2s, transform .1s;
+    }
+    .book-btn__inner:active { background: var(--brown-d); transform: scale(.98); }
+
+    /* ---- Entrance animation ---- */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .card { animation: fadeUp .25s ease both; }
+    .card:nth-child(1)  { animation-delay: .03s; }
+    .card:nth-child(2)  { animation-delay: .06s; }
+    .card:nth-child(3)  { animation-delay: .09s; }
+    .card:nth-child(4)  { animation-delay: .12s; }
+    .card:nth-child(5)  { animation-delay: .15s; }
+    .card:nth-child(6)  { animation-delay: .18s; }
+    .card:nth-child(7)  { animation-delay: .21s; }
+    .card:nth-child(8)  { animation-delay: .24s; }
+
+    /* ==============================
+       Схема зала
+    ============================== */
+    .hall-wrap {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 14px rgba(45,32,23,.12);
+    }
+
+    .hall {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 8 / 7;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,.025) 0px, rgba(0,0,0,.025) 1px,
+          transparent 1px, transparent 44px
+        ),
+        #EAE0CE;
+      border-top:   4px solid #A89480;
+      border-left:  4px solid #A89480;
+      border-right: 2px solid #C4B4A0;
+      border-bottom: 1px solid #D4C4B0;
+      overflow: hidden;
+    }
+
+    /* Обёртка столика */
+    .t-wrap {
+      position: absolute;
+      width: 10.5%;
+      height: 12%;
+      overflow: visible;
+      z-index: 1;
+    }
+
+    /* Стул — по одному на каждую сторону */
+    .ch {
+      position: absolute;
+      background: #BEB2A0;
+      border-radius: 3px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Горизонтальные стулья (сверху/снизу) */
+    .ch.t, .ch.b { width: 46%; height: 22%; left: 27%; }
+    .ch.t { top: -28%; }
+    .ch.b { bottom: -28%; }
+    /* Вертикальные стулья (слева/справа) */
+    .ch.l, .ch.r { width: 22%; height: 46%; top: 27%; }
+    .ch.l { left: -28%; }
+    .ch.r { right: -28%; }
+
+    /* Барная стойка */
+    .hall-bar-counter {
+      position: absolute;
+      left: 87%; top: 5%; right: 0; height: 73%;
+      background: linear-gradient(to left, #BDB0A0, #CEBFAF);
+      border-radius: 4px 0 0 4px;
+      border: 1px solid #B0A090;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* Табуретки внутри стойки */
+    .hall-bar-counter::after {
+      content: '';
+      position: absolute;
+      left: 8%; top: 5%; bottom: 5%;
+      width: 30%;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.35) 0%, rgba(255,255,255,.35) 12%,
+        transparent 12%, transparent 20%
+      );
+      border-radius: 3px;
+    }
+
+    /* Фотозона */
+    .hall-photo-zone {
+      position: absolute;
+      left: 72%; top: 75%;
+      width: 14%; height: 14%;
+      background: #D8C8B8;
+      border-radius: 6px;
+      border: 1px dashed #C0AE9C;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .hz-label {
+      font-size: 6px;
+      font-weight: 600;
+      color: rgba(90,70,55,.6);
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Стол */
+    .ht {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      border: none;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 1;
+    }
+
+    .ht.free {
+      background: var(--sage);
+      box-shadow: 0 2px 5px rgba(80,120,80,.2);
+    }
+    .ht.free:active,
+    .ht.free.sel {
+      background: var(--brown);
+      transform: scale(1.08);
+      box-shadow: 0 3px 10px rgba(140,109,79,.4);
+    }
+    .ht.free.sel ~ .ch { background: #A89070; }
+
+    /* Огонь (камин) */
+    .hall-fire {
+      position: absolute;
+      left: 37%;
+      top: 41%;
+      width: 20%;
+      height: 11%;
+      background: #D0BEA4;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      pointer-events: none;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.1);
+      z-index: 1;
+    }
+
+    /* Надпись «Бар» */
+    .hall-bar-label {
+      position: absolute;
+      right: 1%;
+      top: 30%;
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba(90,70,50,.5);
+      letter-spacing: 2px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      pointer-events: none;
+    }
+
+    /* Вход */
+    .hall-entrance {
+      position: absolute;
+      top: 91%;
+      left: 22%;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      pointer-events: none;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---- Легенда и баннер выбранного столика ---- */
+    .hall-legend {
+      display: flex;
+      gap: 14px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .hall-legend-item { display: flex; align-items: center; gap: 5px; }
+    .hall-dot { width: 12px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+
+    .hall-selected {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: var(--brown);
+      color: white;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      animation: fadeUp .2s ease;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header__logo">Hygge <em>Kafé</em></div>
+  <div class="header__sub">ТЦ Ультра, 3 этаж · +7 (937) 849-23-18</div>
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<div class="content">
+  <div class="section-title" id="sectionTitle"></div>
+  <div class="menu-list" id="menuList"></div>
+</div>
+
+<div class="book-btn">
+  <button class="book-btn__inner" id="bookBtn">
+    🗓 Забронировать столик
+  </button>
+</div>
+
+<script>
+// ============================================================
+//  Меню
+// ============================================================
+const MENU = {
+  "🍳 Завтраки": {
+    emoji: "🍳",
+    note: "Будни 10:00–12:00 · Выходные 10:00–14:00",
+    items: [
+      { name:"Завтрак №1", desc:"Бекон, яичница, салат, сыр брынза, фасоль, тосты · 280г", price:450 },
+      { name:"Завтрак №2", desc:"Тигровые креветки в сливочном соусе со шпинатом, яичница, тосты · 260г", price:450 },
+      { name:"Завтрак №3", desc:"Лосось слабосолёный, яичница, салат, сливочный сыр, тосты · 280г", price:490 },
+      { name:"Завтрак №4", desc:"Сосиски, яичница, салат, тосты, кетчуп, соус тар-тар · 290г", price:440 },
+      { name:"Яичница", desc:"Из двух яиц с зеленью · 100г. Добавки: бекон/ветчина/моцарелла/томаты +80₽", price:100 },
+      { name:"Драники с лососем", desc:"Картофельные дранники с лососем, сливочным сыром и огурцом · 190г", price:470 },
+      { name:"Каша овсяная", desc:"На молоке с ягодами · 250г. На альтернативном молоке +160₽", price:190 },
+      { name:"Сырники", desc:"Три сырника с клубничным соусом и сметаной · 200г", price:290 },
+      { name:"Круассан бельгийский", desc:"Миндальная или шоколадно-ореховая начинка · 70г", price:150 },
+      { name:"Датская булочка", desc:"С корицей · 80г", price:160 },
+    ]
+  },
+  "☕ Напитки": {
+    emoji: "☕",
+    items: [
+      { name:"Эспрессо", desc:"30мл", price:190 },
+      { name:"Американо", desc:"200мл", price:190 },
+      { name:"Капучино", desc:"400мл", price:250 },
+      { name:"Латте", desc:"400мл", price:250 },
+      { name:"Раф", desc:"400мл, с сиропом на выбор", price:270 },
+      { name:"Флэт Уайт", desc:"Двойной эспрессо с молоком", price:250 },
+      { name:"Какао", desc:"С маршмеллоу и топпингом · 400мл", price:280 },
+      { name:"Горячий шоколад", desc:"380мл", price:350 },
+      { name:"Глинтвейн", desc:"300мл", price:300 },
+      { name:"Лимонад", desc:"Авторский · 350мл", price:350 },
+      { name:"Мохито", desc:"Классический или клубничный · 300мл", price:300 },
+      { name:"Морс ягодный", desc:"250мл", price:100 },
+    ]
+  },
+  "🥗 Салаты": {
+    emoji: "🥗",
+    items: [
+      { name:"Цезарь", desc:"Классический", price:490 },
+      { name:"Тёплый салат с курицей", desc:"Куриная грудка, обжаренный сыр · 291г", price:490 },
+      { name:"Салат с баклажанами", desc:"С хрустящими баклажанами · 285г", price:450 },
+      { name:"Греческий салат", desc:"Классический · 285г", price:450 },
+    ]
+  },
+  "🍽️ Основное": {
+    emoji: "🍽️",
+    items: [
+      { name:"Стейк форели", desc:"С гарниром и соусом", price:890 },
+      { name:"Бифштекс из говядины", desc:"С гарниром", price:650 },
+      { name:"Куриная грудка гриль", desc:"С гарниром и соусом", price:490 },
+      { name:"Паста с лососем", desc:"Со свежим лососем, сливочный соус", price:590 },
+      { name:"Паста карбонара", desc:"Классическая, бекон, пармезан", price:490 },
+      { name:"Грибной суп-пюре", desc:"С гренками и сливочным сыром", price:330 },
+      { name:"Том-ям", desc:"Острый суп в тайском стиле", price:590 },
+    ]
+  },
+  "🍕 Пицца": {
+    emoji: "🍕",
+    items: [
+      { name:"Маргарита", desc:"Томатный соус, моцарелла · 490г", price:590 },
+      { name:"Четыре сыра", desc:"Четыре вида сыра · 490г", price:650 },
+      { name:"Четыре сезона", desc:"Ассорти начинок · 490г", price:650 },
+      { name:"Сливочная пепперони", desc:"Сливочный соус, пепперони · 490г", price:650 },
+      { name:"Фокачча с травами", desc:"Оливковое масло, прованские травы", price:350 },
+    ]
+  },
+  "🍰 Десерты": {
+    emoji: "🍰",
+    items: [
+      { name:"Тирамису", desc:"Классический итальянский", price:350 },
+      { name:"Чизкейк", desc:"С ягодным соусом", price:350 },
+      { name:"Мороженое", desc:"С шоколадом и орешками · 2 шарика", price:180 },
+      { name:"Круассан бельгийский", desc:"Миндальная или шоколадно-ореховая начинка", price:150 },
+    ]
+  },
+  "🧸 Детское": {
+    emoji: "🧸",
+    items: [
+      { name:"Комбо №1 — Наггетсы", desc:"Наггетсы + картофель фри + соус + пицца Маргарита 2 куска + морс", price:499 },
+      { name:"Комбо №2 — Сэндвич", desc:"Сэндвич с курицей + картофель фри + соус + пицца + морс", price:499 },
+      { name:"Комбо №3 — Шашлычок", desc:"Куриный шашлычок + картофель фри + соус + овощной салатик + морс", price:499 },
+      { name:"Курочка фрикадельки", desc:"С цветными спагетти и томатным соусом · 80г", price:240 },
+      { name:"Пельмени", desc:"Из свинины и говядины", price:250 },
+      { name:"Паста карбонара детская", desc:"Сливочная, с беконом", price:350 },
+      { name:"Картофель фри", desc:"80г", price:120 },
+      { name:"Какао детское", desc:"280мл", price:280 },
+      { name:"Бабл-ти", desc:"280мл", price:120 },
+    ]
+  },
+  "🍷 Алкоголь": {
+    emoji: "🍷",
+    items: [
+      { name:"Игристое вино", desc:"Martini Brut · 125мл", price:280 },
+      { name:"Белое вино", desc:"Бокал · 150мл", price:390 },
+      { name:"Красное вино", desc:"Бокал · 150мл", price:390 },
+      { name:"Виски", desc:"Johnnie Walker, Jack Daniel's · 40мл", price:380 },
+      { name:"Ликёр Ягермайстер", desc:"40мл", price:380 },
+      { name:"Пиво безалкогольное", desc:"Балтика 0 · 450мл", price:200 },
+    ]
+  },
+};
+
+// ============================================================
+//  Схема зала
+//  ok:true  — столик доступен для брони
+//  ok:false — недоступен (бар, фотозона и пр.)
+// ============================================================
+const TABLES_TAB = '__tables__';
+
+const TABLES = [
+  // Левая стена
+  { n:8,  l:1,  t:3,  ok:true  },
+  { n:7,  l:1,  t:27, ok:true  },
+  { n:6,  l:1,  t:53, ok:true  },
+  // Верхний ряд
+  { n:9,  l:22, t:3,  ok:true  },
+  { n:10, l:34, t:3,  ok:true  },
+  { n:11, l:46, t:3,  ok:true  },
+  { n:12, l:58, t:3,  ok:true  },
+  { n:13, l:73, t:3,  ok:true  },
+  // Центр верхний
+  { n:17, l:22, t:28, ok:true  },
+  { n:16, l:34, t:28, ok:true  },
+  { n:15, l:46, t:28, ok:true  },
+  { n:14, l:58, t:28, ok:true  },
+  // Центр нижний
+  { n:18, l:22, t:54, ok:true  },
+  { n:19, l:34, t:54, ok:true  },
+  { n:20, l:46, t:54, ok:true  },
+  { n:21, l:58, t:54, ok:true  },
+  // Нижний ряд — доступен только 3
+  { n:3,  l:44, t:80, ok:true  },
+  { n:5,  l:1,  t:80, ok:false },
+  { n:4,  l:14, t:80, ok:false },
+  { n:2,  l:59, t:80, ok:false },
+  { n:1,  l:73, t:70, ok:false, sub:'📷' },
+  // Барная стойка (22–26)
+  { n:22, l:87, t:7,  ok:false },
+  { n:23, l:87, t:21, ok:false },
+  { n:24, l:87, t:35, ok:false },
+  { n:25, l:87, t:49, ok:false },
+  { n:26, l:87, t:63, ok:false },
+];
+
+const selectedTables = new Set();
+
+// ============================================================
+//  Telegram Web App
+// ============================================================
+const tg = window.Telegram?.WebApp || {
+  ready: () => {}, expand: () => {},
+  sendData: () => {}, initData: ''
+};
+tg.ready();
+tg.expand();
+
+// ============================================================
+//  Навигация
+// ============================================================
+let activeCategory = Object.keys(MENU)[0];
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+
+  const hallBtn = `<button class="tab ${activeCategory === TABLES_TAB ? 'active' : ''}"
+    onclick="switchCategory('${TABLES_TAB}')">🪑 Столики</button>`;
+
+  const menuBtns = Object.keys(MENU).map(cat => {
+    const emoji = MENU[cat].emoji;
+    const label = cat.replace(/^\S+\s+/, '');
+    return `<button class="tab ${cat === activeCategory ? 'active' : ''}"
+      onclick="switchCategory('${cat.replace(/'/g, "\\'")}')"
+    >${emoji} ${label}</button>`;
+  }).join('');
+
+  tabs.innerHTML = hallBtn + menuBtns;
+}
+
+function switchCategory(cat) {
+  activeCategory = cat;
+  renderTabs();
+  renderContent();
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' });
+  const active = document.querySelector('.tab.active');
+  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function renderContent() {
+  if (activeCategory === TABLES_TAB) {
+    renderHall();
+  } else {
+    renderMenu();
+  }
+  updateBookBtn();
+}
+
+// ============================================================
+//  Меню
+// ============================================================
+function renderMenu() {
+  const { items, note } = MENU[activeCategory];
+  document.getElementById('sectionTitle').textContent =
+    activeCategory.replace(/^\S+\s+/, '');
+
+  const list = document.getElementById('menuList');
+  const noteHtml = note
+    ? `<div style="background:var(--beige);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:4px">⏰ ${note}</div>`
+    : '';
+
+  list.innerHTML = noteHtml + items.map(item => `
+    <div class="card">
+      <div class="card__img">${MENU[activeCategory].emoji}</div>
+      <div class="card__body">
+        <div class="card__name">${item.name}</div>
+        <div class="card__desc">${item.desc}</div>
+        <div class="card__price">${item.price} ₽</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+//  Схема зала
+// ============================================================
+function renderHall() {
+  document.getElementById('sectionTitle').textContent = 'Схема зала';
+
+  // Конфиг стульев: t=сверху b=снизу l=слева r=справа
+  const CHAIRS = {
+    8:  'br',  // угол (верх+лево стена): справа и снизу
+    9:'b', 10:'b', 11:'b', 12:'b', 13:'b', // верхняя стена: только снизу
+    7:  'r',   // левая стена (банкетка): только справа
+    6:  'r',   // левая стена (банкетка): только справа
+    17:'t', 16:'t', 15:'t', 14:'t',  // над камином: только сверху (снизу камин)
+    18:'b', 19:'b', 20:'b', 21:'b',  // под камином: только снизу (сверху камин)
+    3:  'lr',  // у входа: слева и справа
+  };
+
+  const tablesHtml = TABLES
+    .filter(t => t.ok)
+    .map(t => {
+      const isSel = selectedTables.has(t.n);
+      const btnCls = `ht free${isSel ? ' sel' : ''}`;
+      const icon = isSel ? '✓' : '';
+      const cfg = CHAIRS[t.n] || 'tb';
+      const ch = s => cfg.includes(s) ? `<div class="ch ${s}"></div>` : '';
+      return `
+        <div class="t-wrap" style="left:${t.l}%;top:${t.t}%">
+          ${ch('t')}${ch('b')}${ch('l')}${ch('r')}
+          <button class="${btnCls}" onclick="selectTable(${t.n})">${icon}</button>
+        </div>`;
+    }).join('');
+
+  const count = selectedTables.size;
+  const banner = count > 0
+    ? `<div class="hall-selected">✅ Выбрано мест: ${count} — нажмите кнопку ниже</div>`
+    : '';
+
+  document.getElementById('menuList').innerHTML = `
+    <div class="hall-wrap">
+      <div class="hall">
+        ${tablesHtml}
+        <div class="hall-bar-counter"><span class="hall-bar-label">БАР</span></div>
+        <div class="hall-photo-zone">📷<div class="hz-label">Фотозона</div></div>
+        <div class="hall-fire">🔥</div>
+        <div class="hall-entrance">↑ Вход</div>
+      </div>
+    </div>
+    <div class="hall-legend">
+      <div class="hall-legend-item">
+        <div class="hall-dot" style="background:var(--sage)"></div><span>Свободно</span>
+      </div>
+      <div class="hall-legend-item">
+        <div class="hall-dot" style="background:var(--brown)"></div><span>Выбрано</span>
+      </div>
+    </div>
+    ${banner}
+  `;
+}
+
+function selectTable(n) {
+  if (selectedTables.has(n)) selectedTables.delete(n);
+  else selectedTables.add(n);
+  renderHall();
+  updateBookBtn();
+}
+
+function updateBookBtn() {
+  const btn = document.getElementById('bookBtn');
+  const count = selectedTables.size;
+  btn.textContent = count > 0
+    ? `🗓 Забронировать (${count} ${count === 1 ? 'место' : 'места'})`
+    : '🗓 Забронировать столик';
+}
+
+// ---- Кнопка бронирования ----
+document.getElementById('bookBtn').addEventListener('click', () => {
+  const payload = { action: 'book' };
+  if (selectedTables.size > 0) payload.tables = [...selectedTables];
+  tg.sendData(JSON.stringify(payload));
+  if (!tg.initData) {
+    alert('Откройте бота @HyggeKafeBot и нажмите «Открыть меню»');
+  }
+});
+
+// Инициализация
+renderTabs();
+renderContent();
+</script>
+</body>
+</html>
